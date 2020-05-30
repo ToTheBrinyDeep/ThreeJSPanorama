@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+
+<head>
+	<title>室内全景漫游</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			/* 隐藏body窗口区域滚动条 */
+			display: flex;
+			flex-direction: column;
+		}
+
+		#menu {
+			align-self: center;
+			position: absolute;
+			bottom: 0px;
+			color: #fff;
+			background: rgba(0, 0, 0, 0.5);
+			padding: 10px;
+			z-index: 102;
+			width: 1010px;
+			height: 50px
+		}
+
+		#menu>div {
+			padding: 5px;
+		}
+
+		#menu span {
+			display: inline-block;
+			padding: 5px 10px;
+			cursor: pointer;
+		}
+
+		.danger {
+			font-size: 25px !important;
+			background: rgba(0, 0, 0, 0.5) !important;
+			border-width: 0px !important;
+			width: 50px !important;
+			height: 50px !important;
+			border-radius: 50%;
+			margin-right: 20px;
+			text-align: center;
+		}
+
+		#homeplan {
+			position: relative;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -105%);
+
+		}
+	</style>
+</head>
+
+<body>
+
+	<div id="container"></div>
+	<div id="menu">
+		<div>
+			<span style="font-weight: bold; cursor: default;">选择位置:</span>
+			<span class="sp" id="goto_entrance">玄关</span>
+			<span class="sp" id="goto_dininghall">餐厅</span>
+			<span class="sp" id="goto_kitchen">厨房</span>
+			<span class="sp" id="goto_livingroom">客厅</span>
+			<span class="sp" id="goto_balcony">阳台</span>
+			<span class="sp" id="goto_bedroom1">卧室1</span>
+			<span class="sp" id="goto_bathroom1">卫生间(卧室1)</span>
+			<span class="sp" id="goto_bedroom2">卧室2</span>
+			<span class="sp" id="goto_bedroom3">卧室3</span>
+			<span class="sp" id="goto_bathroom3">卫生间(卧室3)</span>
+			<span class="sp" id="goto_bedroom4">卧室4</span>
+			<span class="sp" id="goto_bathroom">主卫</span>
+			<span class="sp" id="goto_terrace">露台</span>
+		</div>
+	</div>
+	<img src="./UI/平面图.jpg" id="homeplan" style='display:none' width="955px" hight="904px" alt="">
+	<div style="position: absolute;right:20px;top:20px">
+		<audio src="./BGM/琵琶语.mp3" controls="controls" autoplay="autoplay" loop="loop" id="music" hidden></audio>
+		<button class="danger"><img id="audio" src="./UI/关闭声音.png" alt="" width="25px" height="25px"></button>
+		<button class="danger"><img id="fullscreen" onclick="screenClick()" src="./UI/全屏5.png" alt="" width="18"
+				height="18"></button>
+		<button class="danger"><img id="rotateeyesight" onclick="rotateClick()" src="./UI/停止旋转.png" alt="" width="20"
+				height="20"></button>
+		<button class="danger"><img id="question" onclick="questionClick()" src="./UI/帮助5.png" alt="" title="查看平面图"
+				width="22" height="22"></button>
+
+	</div>
+
+	<script src="build/three.js"></script>
+	<script src="mouseTouchControl.js"></script>
+	<script src="makeFrontCanvas.js"></script>
+
+	<script>
+		var a = 0,
+			s = 0,
+			r = 0,
+			q = 0;
+		var rotatey; //控制是否旋转
+		function audioPlay() {
+			var audioPlay = document.getElementById('music');
+			if (audioPlay.paused) {
+				audioPlay.play();
+			} else {
+				audioPlay.pause();
+			}
+		}
+
+		function questionClick() {
+			if (q == 0) {
+				document.getElementById('homeplan').style.display = "block";
+				q++;
+			} else {
+				document.getElementById('homeplan').style.display = "none";
+				q = 0;
+			}
+
+		}
+
+		var audio = document.getElementById("audio");
+		audio.onclick = function () {
+			if (a == 0) {
+				audio.src = "./UI/打开声音.png";
+				a++;
+				audioPlay();
+			} else {
+				audio.src = "./UI/关闭声音.png";
+				a = 0;
+				//console.log("播放")
+				audioPlay();
+			}
+
+		}
+
+		function screenClick() {
+			var fullscreen = document.getElementById("fullscreen");
+			if (s == 0) {
+				fullscreen.src = "./UI/退出全屏.png";
+				s++;
+				requestFullScreen();
+			} else {
+				fullscreen.src = "./UI/全屏5.png";
+				s = 0;
+				exitFullscreen();
+			}
+		}
+
+		function requestFullScreen() {
+			var de = document.documentElement;
+			if (de.requestFullscreen) {
+				de.requestFullscreen()
+			} else if (de.mozRequestFullScreen) {
+				de.mozRequestFullScreen()
+			} else if (de.webkitRequestFullScreen) {
+				de.webkitRequestFullScreen()
+			}
+		}
+
+		function exitFullscreen() {
+			var de = document;
+			if (de.exitFullscreen) {
+				de.exitFullscreen()
+			} else if (de.mozCancelFullScreen) {
+				de.mozCancelFullScreen()
+			} else if (de.webkitCancelFullScreen) {
+				de.webkitCancelFullScreen()
+			}
+		}
+
+		function rotateClick() {
+			var rotateeyesight = document.getElementById("rotateeyesight");
+			if (r == 0) {
+				rotateeyesight.src = "./UI/旋转.png";
+				r++;
+				rotatey = true;
+			} else {
+				rotateeyesight.src = "./UI/停止旋转.png";
+				r = 0;
+				rotatey = false;
+			}
+		}
+		/* audio.onclick = function () {
+			audioClick();
+		} */
+		var camera, scene, renderer;
+		var raycaster = new THREE.Raycaster(); //对象从屏幕上的点击位置向场景中发射一束光线
+		var go_entrance,
+			go_dininghall,
+			go_kitchen,
+			go_bedroom1,
+			go_bathroom1,
+			go_livingroom,
+			go_bedroom2,
+			go_bedroom3,
+			go_bedroom4,
+			go_bathroom,
+			go_bathroom3,
+			go_terrace,
+			go_balcony;
+		var mouse = new THREE.Vector2(); //鼠标位置
+		var is_click; //点击事件
+		var isUserInteracting = false,
+			onMouseDownMouseX = 0,
+			onMouseDownMouseY = 0,
+			lon = 0,
+			onMouseDownLon = 0,
+			lat = 0,
+			onMouseDownLat = 0,
+			phi = 0,
+			theta = 0;
+		var geometry; //球体网格
+		var entrance,
+			dininghall,
+			kitchen,
+			bedroom1,
+			bathroom1,
+			livingroom,
+			bedroom2,
+			bedroom3,
+			bedroom4,
+			bathroom,
+			bathroom3,
+			balcony,
+			terrace;
+		var mesh; //全景球体对象
+		var camera_time = 0; //摄像机移动参数
+		var exchange_img = false; //切换图片标志位
+
+		init();
+		animate();
+
+		function init() {
+			var container;
+			container = document.getElementById('container');
+
+			camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100); //透视相机
+			camera.target = new THREE.Vector3(0, 0, 0); //相机位置
+
+			scene = new THREE.Scene(); //创建场景
+
+			//创建一个canvas绘制文字
+
+			//箭头板子
+			go_dininghall = makeTextSprite("     👆", "    餐厅");
+			go_dininghall.position.set(-0.5, -2, 2.5);
+			scene.add(go_dininghall);
+
+			go_kitchen = makeTextSprite("     👆", "    厨房");
+			go_kitchen.position.set(1.5, -2, 1.6);
+			scene.add(go_kitchen);
+			go_kitchen.visible = false;
+
+			go_bedroom1 = makeTextSprite(" 👆", "卧室1");
+			go_bedroom1.position.set(1.5, -2, 1);
+			scene.add(go_bedroom1);
+			go_bedroom1.visible = false;
+
+			go_bathroom1 = makeTextSprite(" 👈", "卫生间1");
+			go_bathroom1.position.set(0.5, -2, -2.5);
+			scene.add(go_bathroom1);
+			go_bathroom1.visible = false;
+
+			go_livingroom = makeTextSprite("       👆", "      客厅");
+			go_livingroom.position.set(-0.5, -2, -2.5);
+			scene.add(go_livingroom);
+
+			go_bedroom2 = makeTextSprite("       👉", "      卧室2");
+			go_bedroom2.position.set(-3, -1.1, 0);
+			scene.add(go_bedroom2);
+			go_bedroom2.visible = false;
+
+			go_bedroom3 = makeTextSprite("       👉", "      卧室3");
+			go_bedroom3.position.set(-4, -0.5, 0);
+			scene.add(go_bedroom3);
+			go_bedroom3.visible = false;
+
+			go_bedroom4 = makeTextSprite("    👈", "   卧室4");
+			go_bedroom4.position.set(-3.5, -0.8, 0);
+			scene.add(go_bedroom4);
+			go_bedroom4.visible = false;
+
+			go_bathroom = makeTextSprite("      👈", "     主卫");
+			go_bathroom.position.set(-3.8, -1.1, 0.5);
+			scene.add(go_bathroom);
+			go_bathroom.visible = false;
+
+			go_bathroom3 = makeTextSprite("       👆", "     卫生间");
+			go_bathroom3.position.set(2.5, -2.7, 0);
+			scene.add(go_bathroom3);
+			go_bathroom3.visible = false;
+
+			go_terrace = makeTextSprite("      👈", "     露台");
+			go_terrace.position.set(-3.8, -0.3, 0.5);
+			scene.add(go_terrace);
+			go_terrace.visible = false;
+
+			go_balcony = makeTextSprite("      👆", "     阳台");
+			go_balcony.position.set(0.5, -1.5, -3);
+			scene.add(go_balcony);
+			go_balcony.visible = false;
+
+			//全景场景
+			geometry = new THREE.SphereGeometry(500, 60, 40);
+			geometry.scale(-1, 1, 1);
+
+			entrance = new THREE.MeshBasicMaterial({
+				map: new THREE.TextureLoader().load('entrance.jpg', void
+					function () {}())
+			});
+
+			mesh = new THREE.Mesh(geometry, entrance);
+
+			//异步加载高清纹理图
+			//错误写法，在加载完图片后还没给map赋值，就使用了该材质。
+			//entrance = new THREE.MeshBasicMaterial( {
+			//    map: new THREE.TextureLoader().load( 'entrance.jpg', void function(){
+			//        mesh.material = entrance;   }() )} );
+			//正确写法：在加载完成之后先完成对材质对象的构建，在进行使用
+			/* new THREE.TextureLoader().load('entrance.jpg', function (texture) {
+				entrance = new THREE.MeshBasicMaterial({
+					map: texture
+				});
+				mesh.material = entrance;
+			}); */
+
+			scene.add(mesh);
+
+			//渲染器
+			renderer = new THREE.WebGLRenderer();
+			renderer.setPixelRatio(window.devicePixelRatio);
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			container.appendChild(renderer.domElement);
+
+			document.addEventListener('mousedown', onDocumentMouseDown, false);
+			document.addEventListener('mousemove', onDocumentMouseMove, false);
+			document.addEventListener('mouseup', onDocumentMouseUp, false);
+			document.addEventListener('wheel', onDocumentMouseWheel, false);
+			document.addEventListener('touchstart', onDocumentTouchDown, false);
+			document.addEventListener('touchmove', onDocumentTouchMove, false);
+			document.addEventListener('touchend', onDocumentMouseUp, false);
+
+			window.addEventListener('resize', onWindowResize, false);
+
+		}
+
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize(window.innerWidth, window.innerHeight);
+
+		}
+
+		function animate() {
+			requestAnimationFrame(animate);
+			update();
+		}
+
+		function update() {
+			//捕捉鼠标
+			//	if ( isUserInteracting === false ) {
+			//		lon += 0.1;
+			//	}
+
+			lat = Math.max(-85, Math.min(85, lat));
+			phi = THREE.Math.degToRad(90 - lat);
+			theta = THREE.Math.degToRad(lon);
+
+			camera.target.x = 500 * Math.sin(phi) * Math.cos(theta);
+			camera.target.y = 500 * Math.cos(phi);
+			camera.target.z = 500 * Math.sin(phi) * Math.sin(theta);
+
+			camera.lookAt(camera.target);
+			//console.log(camera.target);
+
+			/*
+			// distortion
+			camera.position.copy( camera.target ).negate();
+			*/
+			/* if (camera_time > 0 && camera_time < 10) {
+				camera.target.x = 500;
+				camera.target.y = 0;
+				camera.target.z = 10000;
+				camera.lookAt(camera.target);
+				camera.fov -= 1;
+				camera.updateProjectionMatrix(); //需要更新，不自动更新
+				camera_time++;
+				go_dininghall.visible = false;
+				
+			} */
+			sp = document.getElementsByClassName("sp");
+
+			function changeStyle() {
+				for (var i = 0; i < sp.length; i++) {
+					sp[i].style.backgroundColor = "rgba(0,0,0,0)";
+				}
+			}
+
+			function goto_entrance() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = entrance;
+				new THREE.TextureLoader().load('entrance.jpg', function (texture) {
+					entrance = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = entrance;
+				});
+				go_dininghall.visible = true;
+				go_kitchen.visible = false;
+				go_bedroom1.visible = false;
+				go_bathroom1.visible = false;
+				go_livingroom.visible = true;
+				go_bedroom2.visible = false;
+				go_bedroom3.visible = false;
+				go_bedroom4.visible = false;
+				go_bathroom.visible = false;
+				go_bathroom3.visible = false;
+				go_terrace.visible = false;
+				go_balcony.visible = false;
+			}
+			var gotoentrance = document.getElementById("goto_entrance");
+			gotoentrance.onclick = function () {
+				changeStyle();
+				gotoentrance.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_entrance();
+			}
+
+			function goto_dininghall() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = dininghall;
+				new THREE.TextureLoader().load('dininghall.jpg', function (texture) {
+					dininghall = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = dininghall;
+				});
+				go_dininghall.visible = false;
+				go_kitchen.visible = true;
+				go_bedroom1.visible = false;
+				go_bathroom1.visible = false;
+				go_livingroom.visible = false;
+				go_bedroom2.visible = false;
+				go_bedroom3.visible = false;
+				go_bedroom4.visible = false;
+				go_bathroom.visible = false;
+				go_bathroom3.visible = false;
+				go_terrace.visible = false;
+				go_balcony.visible = false;
+			}
+			var gotodininghall = document.getElementById("goto_dininghall");
+			gotodininghall.onclick = function () {
+				changeStyle();
+				gotodininghall.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_dininghall();
+			}
+			if (camera_time == 3) {
+				gotodininghall.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_dininghall();
+			}
+
+			function goto_kitchen() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = kitchen;
+				new THREE.TextureLoader().load('kitchen.jpg', function (texture) {
+					kitchen = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = kitchen;
+				});
+				go_dininghall.visible = false;
+				go_kitchen.visible = false;
+				go_bedroom1.visible = false;
+				go_bathroom1.visible = false;
+				go_livingroom.visible = false;
+				go_bedroom2.visible = false;
+				go_bedroom3.visible = false;
+				go_bedroom4.visible = false;
+				go_bathroom.visible = false;
+				go_bathroom3.visible = false;
+				go_terrace.visible = false;
+				go_balcony.visible = false;
+			}
+			var gotokitchen = document.getElementById("goto_kitchen");
+			gotokitchen.onclick = function () {
+				changeStyle();
+				gotokitchen.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_kitchen();
+			}
+			if (camera_time == 4) {
+				gotokitchen.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_kitchen();
+			}
+
+			function goto_bedroom1() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = bedroom1;
+				new THREE.TextureLoader().load('bedroom1.jpg', function (texture) {
+					bedroom1 = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = bedroom1;
+				});
+				go_dininghall.visible = false;
+				go_kitchen.visible = false;
+				go_bedroom1.visible = false;
+				go_bathroom1.visible = true;
+				go_livingroom.visible = false;
+				go_bedroom2.visible = false;
+				go_bedroom3.visible = false;
+				go_bedroom4.visible = false;
+				go_bathroom.visible = false;
+				go_bathroom3.visible = false;
+				go_terrace.visible = false;
+				go_balcony.visible = false;
+			}
+			var gotobedroom1 = document.getElementById("goto_bedroom1");
+			gotobedroom1.onclick = function () {
+				changeStyle();
+				gotobedroom1.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bedroom1();
+			}
+			if (camera_time == 5) {
+				gotobedroom1.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bedroom1();
+			}
+
+			function goto_bathroom1() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = bathroom1;
+				new THREE.TextureLoader().load('bathroom1.jpg', function (texture) {
+					bathroom1 = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = bathroom1;
+				});
+				go_dininghall.visible = false;
+				go_kitchen.visible = false;
+				go_bedroom1.visible = false;
+				go_bathroom1.visible = false;
+				go_livingroom.visible = false;
+				go_bedroom2.visible = false;
+				go_bedroom3.visible = false;
+				go_bedroom4.visible = false;
+				go_bathroom.visible = false;
+				go_bathroom3.visible = false;
+				go_terrace.visible = false;
+				go_balcony.visible = false;
+			}
+			var gotobathroom1 = document.getElementById("goto_bathroom1");
+			gotobathroom1.onclick = function () {
+				changeStyle();
+				gotobathroom1.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bathroom1();
+			}
+			if (camera_time == 6) {
+				gotobathroom1.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bathroom1();
+			}
+
+			function goto_livingroom() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = livingroom;
+				new THREE.TextureLoader().load('livingroom.jpg', function (texture) {
+					livingroom = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = livingroom;
+				});
+				go_dininghall.visible = false;
+				go_kitchen.visible = false;
+				go_bedroom1.visible = true;
+				go_bathroom1.visible = false;
+				go_livingroom.visible = false;
+				go_bedroom2.visible = true;
+				go_bedroom3.visible = true;
+				go_bedroom4.visible = true;
+				go_bathroom.visible = true;
+				go_bathroom3.visible = false;
+				go_terrace.visible = true;
+				go_balcony.visible = true;
+			}
+			var gotolivingroom = document.getElementById("goto_livingroom");
+			gotolivingroom.onclick = function () {
+				changeStyle();
+				gotolivingroom.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_livingroom();
+			}
+			if (camera_time == 7) {
+				gotolivingroom.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_livingroom();
+			}
+
+			function goto_bedroom2() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = bedroom2;
+				new THREE.TextureLoader().load('bedroom2.jpg', function (texture) {
+					bedroom2 = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = bedroom2;
+				});
+				go_dininghall.visible = false;
+				go_kitchen.visible = false;
+				go_bedroom1.visible = false;
+				go_bathroom1.visible = false;
+				go_livingroom.visible = false;
+				go_bedroom2.visible = false;
+				go_bedroom3.visible = false;
+				go_bedroom4.visible = false;
+				go_bathroom.visible = false;
+				go_bathroom3.visible = false;
+				go_terrace.visible = false;
+				go_balcony.visible = false;
+			}
+			var gotobedroom2 = document.getElementById("goto_bedroom2");
+			gotobedroom2.onclick = function () {
+				changeStyle();
+				gotobedroom2.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bedroom2();
+			}
+			if (camera_time == 8) {
+				gotobedroom2.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bedroom2();
+			}
+
+			function goto_bedroom3() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = bedroom3;
+				new THREE.TextureLoader().load('bedroom3.jpg', function (texture) {
+					bedroom3 = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = bedroom3;
+				});
+				go_dininghall.visible = false;
+				go_kitchen.visible = false;
+				go_bedroom1.visible = false;
+				go_bathroom1.visible = false;
+				go_livingroom.visible = false;
+				go_bedroom2.visible = false;
+				go_bedroom3.visible = false;
+				go_bedroom4.visible = false;
+				go_bathroom.visible = false;
+				go_bathroom3.visible = true;
+				go_terrace.visible = false;
+				go_balcony.visible = false;
+			}
+			var gotobedroom3 = document.getElementById("goto_bedroom3");
+			gotobedroom3.onclick = function () {
+				changeStyle();
+				gotobedroom3.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bedroom3();
+			}
+			if (camera_time == 9) {
+				gotobedroom3.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bedroom3();
+			}
+
+			function goto_bedroom4() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = bedroom4;
+				new THREE.TextureLoader().load('bedroom4.jpg', function (texture) {
+					bedroom4 = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = bedroom4;
+				});
+				go_dininghall.visible = false;
+				go_kitchen.visible = false;
+				go_bedroom1.visible = false;
+				go_bathroom1.visible = false;
+				go_livingroom.visible = false;
+				go_bedroom2.visible = false;
+				go_bedroom3.visible = false;
+				go_bedroom4.visible = false;
+				go_bathroom.visible = false;
+				go_bathroom3.visible = false;
+				go_terrace.visible = false;
+				go_balcony.visible = false;
+			}
+			var gotobedroom4 = document.getElementById("goto_bedroom4");
+			gotobedroom4.onclick = function () {
+				changeStyle();
+				gotobedroom4.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bedroom4();
+			}
+			if (camera_time == 10) {
+				gotobedroom4.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bedroom4();
+			}
+
+			function goto_bathroom() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = bathroom;
+				new THREE.TextureLoader().load('bathroom.jpg', function (texture) {
+					bathroom = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = bathroom;
+				});
+				go_dininghall.visible = false;
+				go_kitchen.visible = false;
+				go_bedroom1.visible = false;
+				go_bathroom1.visible = false;
+				go_livingroom.visible = false;
+				go_bedroom2.visible = false;
+				go_bedroom3.visible = false;
+				go_bedroom4.visible = false;
+				go_bathroom.visible = false;
+				go_bathroom3.visible = false;
+				go_terrace.visible = false;
+				go_balcony.visible = false;
+			}
+			var gotobathroom = document.getElementById("goto_bathroom");
+			gotobathroom.onclick = function () {
+				changeStyle();
+				gotobathroom.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bathroom();
+			}
+			if (camera_time == 11) {
+				gotobathroom.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bathroom();
+			}
+
+			function goto_bathroom3() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = bathroom3;
+				new THREE.TextureLoader().load('bathroom3.jpg', function (texture) {
+					bathroom3 = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = bathroom3;
+				});
+				go_dininghall.visible = false;
+				go_kitchen.visible = false;
+				go_bedroom1.visible = false;
+				go_bathroom1.visible = false;
+				go_livingroom.visible = false;
+				go_bedroom2.visible = false;
+				go_bedroom3.visible = false;
+				go_bedroom4.visible = false;
+				go_bathroom.visible = false;
+				go_bathroom3.visible = false;
+				go_terrace.visible = false;
+				go_balcony.visible = false;
+			}
+			var gotobathroom3 = document.getElementById("goto_bathroom3");
+			gotobathroom3.onclick = function () {
+				changeStyle();
+				gotobathroom3.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bathroom3();
+			}
+			if (camera_time == 12) {
+				gotobathroom3.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_bathroom3();
+			}
+
+			function goto_terrace() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = terrace;
+				new THREE.TextureLoader().load('terrace.jpg', function (texture) {
+					terrace = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = terrace;
+				});
+				go_dininghall.visible = false;
+				go_kitchen.visible = false;
+				go_bedroom1.visible = false;
+				go_bathroom1.visible = false;
+				go_livingroom.visible = false;
+				go_bedroom2.visible = false;
+				go_bedroom3.visible = false;
+				go_bedroom4.visible = false;
+				go_bathroom.visible = false;
+				go_bathroom3.visible = false;
+				go_terrace.visible = false;
+				go_balcony.visible = false;
+			}
+			var gototerrace = document.getElementById("goto_terrace");
+			gototerrace.onclick = function () {
+				changeStyle();
+				gototerrace.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_terrace();
+			}
+			if (camera_time == 13) {
+				gototerrace.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_terrace();
+			}
+
+			function goto_balcony() {
+				lat = -2;
+				lon = 182;
+				camera_time = 0;
+				camera.fov = 75;
+				camera.updateProjectionMatrix();
+				mesh.material = balcony;
+				new THREE.TextureLoader().load('balcony.jpg', function (texture) {
+					balcony = new THREE.MeshBasicMaterial({
+						map: texture
+					});
+					mesh.material = balcony;
+				});
+				go_dininghall.visible = false;
+				go_kitchen.visible = false;
+				go_bedroom1.visible = false;
+				go_bathroom1.visible = false;
+				go_livingroom.visible = false;
+				go_bedroom2.visible = false;
+				go_bedroom3.visible = false;
+				go_bedroom4.visible = false;
+				go_bathroom.visible = false;
+				go_bathroom3.visible = false;
+				go_terrace.visible = false;
+				go_balcony.visible = false;
+			}
+			var gotobalcony = document.getElementById("goto_balcony");
+			gotobalcony.onclick = function () {
+				changeStyle();
+				gotobalcony.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_balcony();
+			}
+			if (camera_time == 14) {
+				gotobalcony.style.backgroundColor = "rgb(64, 158, 255)";
+				goto_balcony();
+			}
+			renderer.render(scene, camera);
+			if (rotatey) {
+				mesh.rotateY(0.004)
+			}
+		}
+
+		//切换场景动作
+		function changeScene(i) {
+			camera_time = i;
+			console.log(camera_time);
+			//camera_time = 1;
+			// mesh.material = entrance;
+		}
+	</script>
+
+</body>
+
+</html>
