@@ -356,7 +356,11 @@
 
 		function animate() {
 			requestAnimationFrame(animate);
-			update();
+			try {
+				update();
+			} catch (TypeError) {
+				console.log(TypeError);
+			}
 		}
 
 		function update() {
