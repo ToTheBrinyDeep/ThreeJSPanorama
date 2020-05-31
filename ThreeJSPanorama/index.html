@@ -47,6 +47,17 @@
 			text-align: center;
 		}
 
+		#audio {
+			position: relative;
+			top: 3px;
+			left: 1px;
+		}
+
+		#question {
+			position: relative;
+			top: 3px;
+		}
+
 		#homeplan {
 			position: relative;
 			left: 50%;
@@ -87,7 +98,7 @@
 		<button class="danger"><img id="rotateeyesight" onclick="rotateClick()" src="./UI/停止旋转.png" alt="" width="20"
 				height="20"></button>
 		<button class="danger"><img id="question" onclick="questionClick()" src="./UI/帮助5.png" alt="" title="查看平面图"
-				width="22" height="22"></button>
+				width="25" height="25"></button>
 
 	</div>
 
@@ -361,6 +372,8 @@
 			} catch (TypeError) {
 				console.log(TypeError);
 			}
+
+
 		}
 
 		function update() {
@@ -896,7 +909,7 @@
 				mesh.rotateY(0.004)
 			}
 			console.log("渲染完成");
-			
+
 		}
 
 		//切换场景动作
