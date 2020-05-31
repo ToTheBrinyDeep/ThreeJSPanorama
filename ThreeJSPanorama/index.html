@@ -183,9 +183,6 @@
 				rotatey = false;
 			}
 		}
-		/* audio.onclick = function () {
-			audioClick();
-		} */
 		var camera, scene, renderer;
 		var raycaster = new THREE.Raycaster(); //对象从屏幕上的点击位置向场景中发射一束光线
 		var go_entrance,
@@ -248,6 +245,7 @@
 			go_dininghall = makeTextSprite("     👆", "    餐厅");
 			go_dininghall.position.set(-0.5, -2, 2.5);
 			scene.add(go_dininghall);
+			go_dininghall.visible = true;
 
 			go_kitchen = makeTextSprite("     👆", "    厨房");
 			go_kitchen.position.set(1.5, -2, 1.6);
@@ -267,6 +265,7 @@
 			go_livingroom = makeTextSprite("       👆", "      客厅");
 			go_livingroom.position.set(-0.5, -2, -2.5);
 			scene.add(go_livingroom);
+			go_livingroom.visible = true;
 
 			go_bedroom2 = makeTextSprite("       👉", "      卧室2");
 			go_bedroom2.position.set(-3, -1.1, 0);
@@ -466,6 +465,7 @@
 				goto_dininghall();
 			}
 			if (camera_time == 3) {
+				changeStyle();
 				gotodininghall.style.backgroundColor = "rgb(64, 158, 255)";
 				goto_dininghall();
 			}
@@ -503,6 +503,7 @@
 				goto_kitchen();
 			}
 			if (camera_time == 4) {
+				changeStyle();
 				gotokitchen.style.backgroundColor = "rgb(64, 158, 255)";
 				goto_kitchen();
 			}
@@ -540,6 +541,7 @@
 				goto_bedroom1();
 			}
 			if (camera_time == 5) {
+				changeStyle();
 				gotobedroom1.style.backgroundColor = "rgb(64, 158, 255)";
 				goto_bedroom1();
 			}
@@ -577,6 +579,7 @@
 				goto_bathroom1();
 			}
 			if (camera_time == 6) {
+				changeStyle();
 				gotobathroom1.style.backgroundColor = "rgb(64, 158, 255)";
 				goto_bathroom1();
 			}
@@ -614,6 +617,7 @@
 				goto_livingroom();
 			}
 			if (camera_time == 7) {
+				changeStyle();
 				gotolivingroom.style.backgroundColor = "rgb(64, 158, 255)";
 				goto_livingroom();
 			}
@@ -651,6 +655,7 @@
 				goto_bedroom2();
 			}
 			if (camera_time == 8) {
+				changeStyle();
 				gotobedroom2.style.backgroundColor = "rgb(64, 158, 255)";
 				goto_bedroom2();
 			}
@@ -688,6 +693,7 @@
 				goto_bedroom3();
 			}
 			if (camera_time == 9) {
+				changeStyle();
 				gotobedroom3.style.backgroundColor = "rgb(64, 158, 255)";
 				goto_bedroom3();
 			}
@@ -725,6 +731,7 @@
 				goto_bedroom4();
 			}
 			if (camera_time == 10) {
+				changeStyle();
 				gotobedroom4.style.backgroundColor = "rgb(64, 158, 255)";
 				goto_bedroom4();
 			}
@@ -762,6 +769,7 @@
 				goto_bathroom();
 			}
 			if (camera_time == 11) {
+				changeStyle();
 				gotobathroom.style.backgroundColor = "rgb(64, 158, 255)";
 				goto_bathroom();
 			}
@@ -799,6 +807,7 @@
 				goto_bathroom3();
 			}
 			if (camera_time == 12) {
+				changeStyle();
 				gotobathroom3.style.backgroundColor = "rgb(64, 158, 255)";
 				goto_bathroom3();
 			}
@@ -836,6 +845,7 @@
 				goto_terrace();
 			}
 			if (camera_time == 13) {
+				changeStyle();
 				gototerrace.style.backgroundColor = "rgb(64, 158, 255)";
 				goto_terrace();
 			}
@@ -873,6 +883,7 @@
 				goto_balcony();
 			}
 			if (camera_time == 14) {
+				changeStyle();
 				gotobalcony.style.backgroundColor = "rgb(64, 158, 255)";
 				goto_balcony();
 			}
@@ -880,6 +891,7 @@
 			if (rotatey) {
 				mesh.rotateY(0.004)
 			}
+			
 		}
 
 		//切换场景动作
